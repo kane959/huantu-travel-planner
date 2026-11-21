@@ -1,0 +1,371 @@
+/* 寰途 · 智能规划地图面板
+   配色沿用站点变量（深墨绿 / 米白 / 金色），不引入新的视觉语言。 */
+
+.tm-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+.tm-map-wrap {
+  position: relative;
+  border: 1px solid var(--cream-deep);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--cream-deep);
+  box-shadow: var(--shadow);
+}
+
+.tm-map {
+  width: 100%;
+  height: 520px;
+  background: var(--cream-deep);
+  z-index: 0;
+}
+
+.tm-map.is-placing { cursor: crosshair; }
+.tm-map.is-placing .leaflet-grab { cursor: crosshair; }
+
+/* ---------- 离线提示 ---------- */
+
+.tm-offline-note {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(15, 43, 38, 0.88);
+  color: var(--cream);
+  font-size: 12px;
+  line-height: 1.4;
+  border-radius: var(--radius);
+}
+.tm-offline-note::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+/* ---------- 按天配色（CSP 禁内联 style，只能用类名） ---------- */
+
+.tm-c1 { --tm-color: #1f6f5c; }
+.tm-c2 { --tm-color: #b07d18; }
+.tm-c3 { --tm-color: #2f6f9f; }
+.tm-c4 { --tm-color: #a3492e; }
+.tm-c5 { --tm-color: #6b4c9a; }
+.tm-c6 { --tm-color: #2f7a4a; }
+.tm-c7 { --tm-color: #9a4a6b; }
+
+/* ---------- 标记 ---------- */
+
+.tm-marker-wrap { background: none; border: none; }
+
+.tm-pin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: scale(1);
+  transform-origin: 50% 100%;
+  transition: transform 140ms ease-out;
+  pointer-events: auto;
+}
+
+/* 缩放走 data-scale 属性，按 5% 一档；CSP 不允许运行时写内联 style */
+.tm-pin[data-scale="30"] { transform: scale(0.3); }
+.tm-pin[data-scale="35"] { transform: scale(0.35); }
+.tm-pin[data-scale="40"] { transform: scale(0.4); }
+.tm-pin[data-scale="45"] { transform: scale(0.45); }
+.tm-pin[data-scale="50"] { transform: scale(0.5); }
+.tm-pin[data-scale="55"] { transform: scale(0.55); }
+.tm-pin[data-scale="60"] { transform: scale(0.6); }
+.tm-pin[data-scale="65"] { transform: scale(0.65); }
+.tm-pin[data-scale="70"] { transform: scale(0.7); }
+.tm-pin[data-scale="75"] { transform: scale(0.75); }
+.tm-pin[data-scale="80"] { transform: scale(0.8); }
+.tm-pin[data-scale="85"] { transform: scale(0.85); }
+.tm-pin[data-scale="90"] { transform: scale(0.9); }
+.tm-pin[data-scale="95"] { transform: scale(0.95); }
+.tm-pin[data-scale="100"] { transform: scale(1); }
+.tm-pin[data-scale="105"] { transform: scale(1.05); }
+.tm-pin[data-scale="110"] { transform: scale(1.1); }
+.tm-pin[data-scale="115"] { transform: scale(1.15); }
+.tm-pin[data-scale="120"] { transform: scale(1.2); }
+.tm-pin[data-scale="125"] { transform: scale(1.25); }
+
+.tm-pin__body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--tm-color, var(--ink));
+  color: #fffdf8;
+  border: 2px solid #fffdf8;
+  box-shadow: 0 2px 6px rgba(15, 43, 38, 0.28);
+}
+
+.tm-pin__no {
+  margin-top: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: #fffdf8;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(15, 43, 38, 0.2);
+}
+
+/* 密集或缩小时退化成小圆点，只留编号 */
+.tm-pin.is-tiny .tm-pin__body {
+  width: 16px;
+  height: 16px;
+  border-width: 1px;
+}
+.tm-pin.is-tiny .tm-pin__body svg { display: none; }
+.tm-pin.is-tiny .tm-pin__no {
+  margin-top: -4px;
+  font-size: 9px;
+  min-width: 14px;
+  height: 14px;
+  line-height: 14px;
+}
+
+/* ---------- 段间交通标签 ---------- */
+
+.tm-seg-wrap { background: none; border: none; }
+
+.tm-seg {
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(255, 253, 248, 0.94);
+  border: 1px solid var(--tm-color, var(--ink));
+  color: var(--tm-color, var(--ink));
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(15, 43, 38, 0.12);
+}
+
+/* ---------- 弹窗 ---------- */
+
+.tm-popup .leaflet-popup-content-wrapper {
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: 0 10px 30px -18px rgba(15, 43, 38, 0.5);
+}
+.tm-popup .leaflet-popup-content { margin: 12px 14px; }
+.tm-pop { display: grid; gap: 4px; }
+.tm-pop__day {
+  font-size: 11px;
+  color: var(--gold-deep);
+  letter-spacing: 0.08em;
+}
+.tm-pop__title {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.tm-pop__meta { font-size: 12px; color: var(--text-soft); }
+.tm-pop__addr { font-size: 12px; color: var(--text-faint); }
+.tm-pop__badge {
+  margin-top: 2px;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: var(--radius);
+  justify-self: start;
+}
+.tm-pop__badge.is-model { background: var(--cream-deep); color: var(--gold-deep); }
+.tm-pop__badge.is-manual { background: rgba(31, 111, 92, 0.12); color: #1f6f5c; }
+
+/* ---------- 工具条 ---------- */
+
+.tm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tm-toolbar__spacer { flex: 1 1 auto; }
+
+.tm-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.tm-toggle:hover { background: rgba(15, 43, 38, 0.06); }
+.tm-toggle[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cream);
+}
+
+/* ---------- 图例 ---------- */
+
+.tm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.tm-legend__item { display: inline-flex; align-items: center; gap: 6px; }
+
+.tm-legend__dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--tm-color, var(--ink));
+}
+
+.tm-legend__dash {
+  width: 22px; height: 0;
+  border-top: 2px dashed var(--ink-line);
+}
+.tm-legend__dash.is-solid { border-top-style: solid; }
+
+/* ---------- 时间轴 ---------- */
+
+.tm-side {
+  border: 1px solid var(--cream-deep);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.tm-side__head {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cream-deep);
+  background: var(--cream);
+}
+.tm-side__title { font-family: var(--serif); font-size: 15px; color: var(--ink); }
+.tm-side__note { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+
+.tm-days { max-height: 520px; overflow-y: auto; }
+
+.tm-day { border-bottom: 1px solid var(--cream-deep); }
+.tm-day:last-child { border-bottom: none; }
+
+.tm-day__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--cream);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.tm-day__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tm-color, var(--ink));
+  letter-spacing: 0.06em;
+}
+.tm-day__meta { font-size: 11px; color: var(--text-faint); }
+
+.tm-item {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(236, 229, 214, 0.7);
+}
+.tm-item.is-missing { background: rgba(201, 169, 97, 0.07); }
+
+.tm-item__time {
+  font-size: 12px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+.tm-item__time span { display: block; color: var(--text-faint); font-size: 11px; }
+
+.tm-item__main { min-width: 0; }
+
+.tm-item__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+.tm-item__title svg { flex: 0 0 auto; color: var(--tm-color, var(--ink)); }
+
+.tm-item__sub {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.tm-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tm-chip {
+  padding: 3px 8px;
+  border: 1px solid var(--cream-deep);
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 11px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+.tm-chip:hover { border-color: var(--gold); color: var(--gold-deep); }
+.tm-chip.is-on { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+
+.tm-missing {
+  margin-top: 6px;
+  border-top: 1px dashed var(--cream-deep);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.tm-missing strong { color: var(--gold-deep); font-weight: 600; }
+
+/* ---------- 窄屏 ---------- */
+
+@media (max-width: 900px) {
+  .tm-shell { grid-template-columns: 1fr; }
+  .tm-map { height: 400px; }
+  .tm-days { max-height: none; }
+}
+
+/* ---------- 打印 ---------- */
+
+@media print {
+  .tm-map { height: 360px; }
+  .tm-toolbar, .tm-offline-note { display: none; }
+  .tm-shell { grid-template-columns: 1fr; }
+}
+
+.tm-map-summary { font-size: 12px; color: var(--text-faint); }

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2b26">
+  <meta name="description" content="寰途交互原型：需求表单、生成进度、行程结果、路线地图、重新规划的可点击演示。静态数据，不调用模型。">
+  <title>寰途 · 交互原型</title>
+  <link rel="stylesheet" href="prototype.css">
+</head>
+<body data-view="form" data-vw="desktop">
+
+<div class="proto-bar">
+  <div class="proto-bar-inner">
+    <span class="proto-tag">交互原型 v1</span>
+    <span class="proto-note">静态演示 · 不调用模型 · 内容为示例数据</span>
+    <nav class="proto-steps" aria-label="原型场景切换">
+      <button type="button" data-jump="form">① 需求表单</button>
+      <button type="button" data-jump="progress">② 生成中</button>
+      <button type="button" data-jump="result">③ 行程结果</button>
+      <button type="button" data-jump="gate">访问码</button>
+      <button type="button" data-jump="settings">模型设置</button>
+    </nav>
+    <div class="proto-vw" role="group" aria-label="预览宽度">
+      <button type="button" data-vw="desktop" class="is-active">桌面</button>
+      <button type="button" data-vw="mobile">手机</button>
+    </div>
+  </div>
+</div>
+
+<div class="proto-stage">
+  <div class="proto-frame" id="frame">
+
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#" aria-label="寰途首页">
+          <span class="brand-mark" aria-hidden="true">寰</span>
+          <span class="brand-text">
+            <strong>寰途</strong>
+            <small>AI 智能旅行策划师</small>
+          </span>
+        </a>
+        <div class="header-actions">
+          <span id="modelStatus" class="status-pill" data-state="configured">qwen3.7-plus · 已连接</span>
+          <button id="openSettings" class="ghost-button" type="button">模型设置</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========== 访问码闸门（公开试用） ========== -->
+    <section id="gate" class="gate" aria-labelledby="gateTitle">
+      <div class="gate-card">
+        <p class="eyebrow">Huantu · Public Preview</p>
+        <h1 id="gateTitle">这是寰途的公开试用</h1>
+        <p class="gate-lede">输入访问码即可开始规划。访问码只用来换取一个短期的 HttpOnly Cookie，不会存进浏览器存储，也不会出现在页面源码里。</p>
+        <form id="gateForm" novalidate>
+          <label class="field">
+            <span>访问码</span>
+            <input id="accessCode" type="password" autocomplete="off" spellcheck="false" placeholder="向分享者索取（原型可随便填）">
+          </label>
+          <div class="gate-actions">
+            <button class="primary-button" type="submit">
+              <span>进入试用</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+          <p id="gateError" class="gate-error" role="alert"></p>
+        </form>
+        <ul class="gate-facts">
+          <li>公开试用只能创建行程、查看进度与结果。</li>
+          <li>模型设置、模型地址与密钥不对访客开放。</li>
+          <li>每个会话有调用次数上限，达到上限会提示稍后再试。</li>
+          <li>不代订、不付款、不会未经确认写入你的日历。</li>
+        </ul>
+      </div>
+    </section>
+
+    <main id="main">
+
+      <!-- ========== 首屏 ========== -->
+      <section class="hero" id="hero">
+        <div class="hero-inner">
+          <p class="eyebrow">Research first · Then the route</p>
+          <h1>先研究目的地，<br><em>再谈行程。</em></h1>
+          <p class="hero-lede">
+            寰途先整理景点、交通、季节与住宿区域，再排成一条能真正走完的路线。
+            已接入的天气与搜索结果会标注真实来源和读取时间；房价、营业时间与班次仍会保留「待核实」边界。
+          </p>
+          <ul class="hero-facts">
+            <li><span>01</span>目的地洞察与片区划分</li>
+            <li><span>02</span>每日时间轴与交通耗时</li>
+            <li><span>03</span>导出手机日历与路线图</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ========== 需求表单 ========== -->
+      <section class="panel form-panel" id="formSection" aria-labelledby="formTitle">
+        <div class="panel-head">
+          <div>
+            <p class="section-kicker">开始规划</p>
+            <h2 id="formTitle">告诉我们这次旅行</h2>
+          </div>
+          <p class="panel-note">只收集规划所需信息 · 不代订 · 不付款</p>
+        </div>
+
+        <form id="planForm" novalidate>
+          <div class="field-grid">
+            <label class="field">
+              <span>出发地</span>
+              <input id="origin" type="text" value="上海" placeholder="例如：广州">
+            </label>
+            <label class="field">
+              <span>目的地</span>
+              <input id="destination" type="text" value="杭州" placeholder="例如：杭州">
+            </label>
+            <label class="field">
+              <span>出发日期</span>
+              <input id="startDate" type="date" value="2026-11-15">
+            </label>
+            <label class="field">
+              <span>旅行天数</span>
+              <input id="days" type="number" min="1" max="21" value="3">
+            </label>
+            <label class="field">
+              <span>出行人数</span>
+              <input id="travelers" type="number" min="1" max="20" value="2">
+            </label>
+            <label class="field">
+              <span>同行儿童（可选）</span>
+              <input id="children" type="number" min="0" max="20" value="0">
+            </label>
+            <label class="field field-wide">
+              <span>预算</span>
+              <input id="budget" type="text" value="两人合计 8000 元，不含往返机票" placeholder="例如：两人合计 8000 元，不含机票">
+            </label>
+          </div>
+
+          <fieldset class="chip-field">
+            <legend>兴趣偏好 <small>最多选 8 个</small></legend>
+            <div id="interestChips" class="chips">
+              <button type="button" class="chip">美术馆</button>
+              <button type="button" class="chip">博物馆</button>
+              <button type="button" class="chip is-on">历史古迹</button>
+              <button type="button" class="chip">自然风光</button>
+              <button type="button" class="chip">徒步</button>
+              <button type="button" class="chip">海边</button>
+              <button type="button" class="chip">温泉</button>
+              <button type="button" class="chip is-on">美食</button>
+              <button type="button" class="chip is-on">咖啡</button>
+              <button type="button" class="chip">市集</button>
+              <button type="button" class="chip">夜生活</button>
+              <button type="button" class="chip">建筑</button>
+              <button type="button" class="chip">摄影</button>
+              <button type="button" class="chip">购物</button>
+              <button type="button" class="chip">亲子</button>
+              <button type="button" class="chip">小众探索</button>
+            </div>
+          </fieldset>
+
+          <div class="field-grid field-grid-three">
+            <label class="field">
+              <span>出行节奏</span>
+              <select id="pace">
+                <option value="relaxed">慢节奏 · 每天 2–3 处</option>
+                <option value="balanced" selected>适中 · 每天 3–4 处</option>
+                <option value="intense">紧凑 · 每天 4–5 处</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>交通偏好</span>
+              <select id="transport">
+                <option value="public" selected>公共交通优先</option>
+                <option value="walk">步行优先</option>
+                <option value="drive">自驾 / 包车</option>
+                <option value="mixed">混合</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>酒店偏好</span>
+              <select id="hotel">
+                <option value="comfort" selected>舒适型</option>
+                <option value="boutique">设计感 / 精品</option>
+                <option value="luxury">高端</option>
+                <option value="homestay">民宿</option>
+                <option value="budget">经济</option>
+                <option value="any">不限</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="field field-full">
+            <span>特殊需求</span>
+            <textarea id="special" rows="3" placeholder="例如：同行有 70 岁长辈，不能长时间爬坡；需要无障碍通道；素食。"></textarea>
+          </label>
+
+          <div class="form-actions">
+            <p class="form-hint">生成会调用你配置的模型服务，可能产生费用。已有导出文件可直接导入还原。</p>
+            <div class="form-buttons">
+              <button class="ghost-button" type="button" data-jump="result">导入已导出的 JSON</button>
+              <button id="submitPlan" class="primary-button" type="submit">
+                <span>开始规划</span>
+                <span class="arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- ========== 生成进度 ========== -->
+      <section class="progress-panel" id="progress" aria-live="polite">
+        <div class="progress-mark" aria-hidden="true"></div>
+        <div class="progress-body">
+          <p class="section-kicker">后台任务</p>
+          <h2 id="progressTitle">正在研究目的地…</h2>
+          <p class="progress-detail" id="progressDetail">第一步研究目的地，第二步编排每日动线。任务在后台运行，页面每 2 秒查询一次状态。</p>
+          <ol class="stage-list" id="stageList">
+            <li class="stage" data-stage="0"><span class="dot"></span><span class="stage-name">研究目的地</span><span class="stage-note">景点、片区、季节与交通</span></li>
+            <li class="stage" data-stage="1"><span class="dot"></span><span class="stage-name">编排每日动线</span><span class="stage-note">时间轴、移动耗时、用餐</span></li>
+            <li class="stage" data-stage="2"><span class="dot"></span><span class="stage-name">校验约束</span><span class="stage-note">预算、体力、同行人</span></li>
+            <li class="stage" data-stage="3"><span class="dot"></span><span class="stage-name">生成行程与地图</span><span class="stage-note">出行提示、坐标、日历</span></li>
+          </ol>
+          <p class="progress-meta" id="progressMeta">已用时 0s · 任务 ID ——</p>
+          <div class="progress-actions">
+            <button class="ghost-button" type="button" id="cancelJob">取消任务</button>
+            <span class="microcopy">可以离开这一页，回来时会继续显示进度。</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 结果 ========== -->
+      <section class="result" id="result" aria-labelledby="resultTitle">
+        <div class="result-head">
+          <div>
+            <p class="section-kicker" id="resultKicker">旅程概览</p>
+            <h2 id="resultTitle">行程方案</h2>
+            <p class="result-meta" id="resultMeta"></p>
+          </div>
+          <div class="result-head-actions">
+            <button class="ghost-button" type="button" data-toast="已导出 plan.json（原型不产生真实文件）">导出 JSON</button>
+            <button class="ghost-button" type="button" data-toast="原型不调用打印接口">打印 / 存为 PDF</button>
+            <button class="ghost-button" type="button" data-jump="form">修改需求</button>
+            <button class="ghost-button" type="button" data-toast="清除需要二次确认（原型仅提示）">清除旅行记录</button>
+          </div>
+        </div>
+
+        <nav class="tabs" id="tabs" aria-label="行程分区">
+          <button class="tab is-active" data-tab="overview" type="button">概览</button>
+          <button class="tab" data-tab="days" type="button">每日行程</button>
+          <button class="tab" data-tab="spots" type="button">景点与活动</button>
+          <button class="tab" data-tab="hotels" type="button">酒店与配套</button>
+          <button class="tab" data-tab="map" type="button">路线地图</button>
+          <button class="tab" data-tab="calendar" type="button">日历同步</button>
+          <button class="tab" data-tab="sources" type="button">信息来源</button>
+          <button class="tab" data-tab="replan" type="button">重新规划</button>
+        </nav>
+
+        <div class="tab-panel" id="panel-overview" data-panel="overview"></div>
+        <div class="tab-panel" id="panel-days" data-panel="days" hidden></div>
+        <div class="tab-panel" id="panel-spots" data-panel="spots" hidden></div>
+        <div class="tab-panel" id="panel-hotels" data-panel="hotels" hidden></div>
+        <div class="tab-panel" id="panel-map" data-panel="map" hidden></div>
+        <div class="tab-panel" id="panel-calendar" data-panel="calendar" hidden></div>
+        <div class="tab-panel" id="panel-sources" data-panel="sources" hidden></div>
+        <div class="tab-panel" id="panel-replan" data-panel="replan" hidden></div>
+      </section>
+
+      <!-- ========== 边界说明 ========== -->
+      <section class="boundaries" aria-labelledby="boundariesTitle">
+        <h2 id="boundariesTitle">边界说明</h2>
+        <ul>
+          <li>寰途不代订酒店、不代付款、不自动发送任何消息。</li>
+          <li>日历写入前必须由你本人确认；未授权时只提供 .ics 与创建链接。</li>
+          <li>时效信息始终保留「待核实」边界；已接入实时搜索的部分会展示来源和读取时间，请仍以官方页面复核。</li>
+          <li>模型输出的 HTML 不会被页面执行，全部按纯文本显示。</li>
+          <li>本机服务默认只监听 127.0.0.1；旅行记录可在页面上一键清除。</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>寰途 · 本机运行版</span>
+      <span>行程由你配置的模型生成 · 出行前请核对官方公告</span>
+    </footer>
+
+    <!-- ========== 模型设置弹窗 ========== -->
+    <dialog id="settings" aria-labelledby="settingsTitle">
+      <form method="dialog" id="settingsForm">
+        <div class="dialog-head">
+          <div>
+            <p class="section-kicker">真实模型连接</p>
+            <h2 id="settingsTitle">模型设置</h2>
+          </div>
+          <button type="button" class="icon-button" id="closeSettings" aria-label="关闭设置">×</button>
+        </div>
+        <p class="dialog-note">API 密钥只保存在服务端进程内存，不写入网页、浏览器存储或日志；服务重启后需重新填写。</p>
+        <label class="field">
+          <span>接口类型</span>
+          <select><option>Chat Completions</option><option>Responses</option></select>
+        </label>
+        <label class="field">
+          <span>API 基础地址</span>
+          <input type="text" value="https://dashscope.aliyuncs.com/compatible-mode/v1">
+          <small>填写到版本路径（如 /v1），不要带 /chat/completions。</small>
+        </label>
+        <label class="field">
+          <span>模型 ID</span>
+          <input type="text" value="qwen3.7-plus">
+        </label>
+        <label class="field">
+          <span>指令角色</span>
+          <select><option>system（多数兼容服务）</option><option>developer（部分新模型）</option></select>
+        </label>
+        <label class="field">
+          <span>API 密钥</span>
+          <input type="password" value="" placeholder="仅提交给后端，不会回显">
+        </label>
+        <div class="test-result" id="testResult" role="status" aria-live="polite"></div>
+        <div class="dialog-actions">
+          <button class="primary-button" type="button" id="connect">保存并测试连接</button>
+          <button class="ghost-button" type="button" data-toast="后端密钥已清除（原型仅提示）">清除后端密钥</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script src="prototype.js"></script>
+</body>
+</html>
