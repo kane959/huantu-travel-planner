@@ -353,9 +353,9 @@ test('公开试用模式：访问码、权限、Host 与限额', async (t) => {
   });
 
   await t.test('HUANTU_PUBLIC_HOST 支持逗号分隔多个主机（局域网 IP + 隧道域名同时放行）', async () => {
-    const ctx = await setup(t, { publicHost: '<LAN_IP>, *.loca.lt' });
+    const ctx = await setup(t, { publicHost: 'lan.example.test, *.loca.lt' });
 
-    for (const host of ['<LAN_IP>:8788', 'good-name.loca.lt', '127.0.0.1']) {
+    for (const host of ['lan.example.test:8788', 'good-name.loca.lt', '127.0.0.1']) {
       const r = await ctx.httpReq('/api/public', { headers: { Host: host } });
       assert.equal(r.status, 200, `${host} 应放行`);
     }
